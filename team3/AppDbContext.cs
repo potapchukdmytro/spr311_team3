@@ -4,7 +4,7 @@
     {
         public AppDbContext()
         {
-            string cs = "";
+            string connectionString = "";
         }
     }
 }
