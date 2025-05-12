@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <Folder Include="DTOs\Product\" />
-    <Folder Include="Entity\" />
+    <Folder Include="Entities\" />
   </ItemGroup>
 
 </Project>
