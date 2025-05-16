@@ -1,9 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using team3.DAL;
+using team3.DAL.Repositories.Category;
+using team3.DAL.Repositories.Product;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add repositories
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
