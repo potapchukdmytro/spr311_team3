@@ -1,10 +1,5 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using team3.DAL.Entities;
 using team3.DAL.Repositories.Category;
 using team3.DTOs.Category;

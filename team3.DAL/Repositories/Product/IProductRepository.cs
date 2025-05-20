@@ -9,6 +9,6 @@ namespace team3.DAL.Repositories.Product
         Task<bool> DeleteAsync(ProductEntity entity);
         Task<ProductEntity?> GetByIdAsync(int id);
         IQueryable<ProductEntity?> GetAll();
-        bool IsUnique(ProductEntity entity);
+        bool IsUniqueName(ProductEntity entity);
     }
 }

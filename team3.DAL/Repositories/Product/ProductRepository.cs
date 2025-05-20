@@ -37,9 +37,9 @@ namespace team3.DAL.Repositories.Product
             return await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public bool IsUnique(ProductEntity entity)
+        public bool IsUniqueName(ProductEntity entity)
         {
-            return !_context.Products.Any(p => p.Id == entity.Id);
+            return !_context.Products.Any(p => p.Name == entity.Name);
         }
 
         public async Task<bool> UpdateAsync(ProductEntity entity)
