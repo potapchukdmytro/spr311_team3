@@ -17,23 +17,28 @@ namespace team3.DAL.Repositories.Category
             _context = context;
         }
 
-        public async Task CreateAsync(CategoryEntity entity)
+        public async Task<bool> CreateAsync(CategoryEntity entity)
         {
             await _context.Categories.AddAsync(entity);
-            await _context.SaveChangesAsync();
+            var result = await _context.SaveChangesAsync();
+            return result != 0;
         }
 
-        public async Task DeleteAsync(string id)
+        public async Task<bool> DeleteAsync(int id)
         {
             var entity = await FindByIdAsync(id);
+
             if (entity != null)
             {
                 _context.Categories.Remove(entity);
-                await _context.SaveChangesAsync();
+                var result = await _context.SaveChangesAsync();
+                return result != 0;
             }
+
+            return false;
         }
 
-        public async Task<CategoryEntity?> FindByIdAsync(string id)
+        public async Task<CategoryEntity?> FindByIdAsync(int id)
         {
             return await _context.Categories.FirstOrDefaultAsync(e => e.Id.Equals(id));
         }
@@ -48,10 +53,21 @@ namespace team3.DAL.Repositories.Category
             return _context.Categories;
         }
 
-        public async Task UpdateAsync(CategoryEntity entity)
+        public async Task<bool> UpdateAsync(CategoryEntity entity)
         {
-            _context.Categories.Update(entity);
-            await _context.SaveChangesAsync();
+            if (await FindByNameAsync(entity.Name) == null)
+            {
+                _context.Categories.Update(entity);
+                var result = await _context.SaveChangesAsync();
+                return result != 0;
+            }
+
+            return false;
+        }
+
+        public bool IsUniqueName(string name)
+        {
+            return !_context.Categories.Any(c => c.Name == name);
         }
     }
 }
