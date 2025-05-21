@@ -2,8 +2,17 @@ using Microsoft.EntityFrameworkCore;
 using team3.DAL;
 using team3.DAL.Repositories.Category;
 using team3.DAL.Repositories.Product;
+using FluentValidation;
+using team3.BLL.Validators.Product;
+using team3.BLL.Validators.Category;
+using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateProductDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CategoryDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<ProductDtoValidator>();
 
 // Add repositories
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
