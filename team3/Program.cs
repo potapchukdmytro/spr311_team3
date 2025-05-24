@@ -9,81 +9,80 @@ using FluentValidation.AspNetCore;
 using Serilog;
 using Serilog.Events;
 using team3.Middleware;
+using team3.BLL.Services.Category;
+using team3.BLL.Services.Product;
+using team3.BLL.Services.Email;
+using team3.BLL.Configuration;
+
+var builder = WebApplication.CreateBuilder(args);
 
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Debug()
-    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
     .Enrich.FromLogContext()
-    .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} [{Level}] {Message}{NewLine}{Exception}")
+    .WriteTo.Console()
     .WriteTo.File(
         path: "Logs/log-.txt",
         rollingInterval: RollingInterval.Hour,
         retainedFileCountLimit: 24 * 7,
         outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level}] {Message}{NewLine}{Exception}")
     .CreateLogger();
-try
+
+builder.Host.UseSerilog();
+
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateProductDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CategoryDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<ProductDtoValidator>();
+
+// Add repositories
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+// Add services to the container.
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+builder.Services.AddControllers();
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    var builder = WebApplication.CreateBuilder(args);
+    options.UseNpgsql("name=PostgresLocal");
+});
 
-    builder.Host.UseSerilog();
+//Add automapper
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-    builder.Services.AddFluentValidationAutoValidation();
-    builder.Services.AddValidatorsFromAssemblyContaining<CreateProductDtoValidator>();
-    builder.Services.AddValidatorsFromAssemblyContaining<CategoryDtoValidator>();
-    builder.Services.AddValidatorsFromAssemblyContaining<ProductDtoValidator>();
-
-
-    // Add repositories
-    builder.Services.AddScoped<IProductRepository, ProductRepository>();
-    builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-
-    builder.Services.AddControllers();
-    // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-    builder.Services.AddOpenApi();
-
-    builder.Services.AddDbContext<AppDbContext>(options =>
+builder.Services.AddCors(opt =>
+{
+    opt.AddPolicy("react_cors", opt =>
     {
-        options.UseNpgsql("name=PostgresLocal");
+        opt
+        .WithOrigins("http://localhost:5173")
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
     });
+});
 
-    //Add automapper
-    builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+//Email settings
+var EmailSection = builder.Configuration.GetSection("EmailSettings");
+builder.Services.Configure<EmailSettings>(EmailSection);
 
-    builder.Services.AddCors(opt =>
-    {
-        opt.AddPolicy("react_cors", opt =>
-        {
-            opt
-            .WithOrigins("http://localhost:5173")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
-        });
-    });
+var app = builder.Build();
 
-    var app = builder.Build();
-
-    // Configure the HTTP request pipeline..
-    if (app.Environment.IsDevelopment())
-    {
-        app.MapOpenApi();
-    }
-
-
-    app.UseHttpsRedirection();
-
-    app.UseAuthorization();
-
-    app.MapControllers();
-
-    app.Run();
-}
-catch (Exception ex)
+// Configure the HTTP request pipeline..
+if (app.Environment.IsDevelopment())
 {
-    Log.Fatal(ex, "Застосунок завершився неочікувано");
+    app.MapOpenApi();
 }
-finally
-{
-    Log.CloseAndFlush();
-}
+
+
+app.UseHttpsRedirection();
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
